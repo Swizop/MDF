@@ -1,0 +1,17 @@
+{
+	"name": "TriggerWebCopy",
+	"properties": {
+		"parameters": {
+			"sourceContainer": {
+				"type": "string"
+			},
+			"sinkContainer": {
+				"type": "string"
+			},
+			"receiver": {
+				"type": "string"
+			}
+		},
+		"annotations": []
+	}
+}
