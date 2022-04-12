@@ -1,6 +1,132 @@
 {
 	"name": "TriggerWebCopy",
 	"properties": {
+		"activities": [
+			{
+				"name": "Copy1",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "People1",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SinkWithParams",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "SendSuccessEmail",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Copy1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": "https://prod-58.eastus.logic.azure.com:443/workflows/f7319feb210c48f180521ede757a3421/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=EswzZInwOw1xiJ2C9StnehkkyRJQ3K_Dp4Gn9OjADe4",
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/json"
+					},
+					"body": {
+						"message": "@{activity('Copy1').output.dataWritten}",
+						"dataFactoryName": "@{pipeline().DataFactory}",
+						"pipelineName": "@{pipeline().Pipeline}",
+						"receiver": "@pipeline().parameters.receiver"
+					}
+				}
+			},
+			{
+				"name": "SendFailEmail",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Copy1",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": "https://prod-10.centralus.logic.azure.com:443/workflows/d6b5281763b74ccba0ea7dba26001785/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=ucPpu7JfglHNeqI7gDPbd5eA-QfQm30n_RI-otnmVsM",
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/json"
+					},
+					"body": {
+						"message": "@{activity('Copy1').error.message}",
+						"dataFactoryName": "@{pipeline().DataFactory}",
+						"pipelineName": "@{pipeline().Pipeline}",
+						"receiver": "@pipeline().parameters.receiver"
+					}
+				}
+			}
+		],
 		"parameters": {
 			"sourceContainer": {
 				"type": "string"
