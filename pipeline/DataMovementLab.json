@@ -36,7 +36,7 @@
 									"physicalType": "int"
 								},
 								"sink": {
-									"name": "CustomerID",
+									"name": "ManagerId",
 									"type": "Int32",
 									"physicalType": "int"
 								}
@@ -61,42 +61,6 @@
 								},
 								"sink": {
 									"name": "LastName",
-									"type": "String",
-									"physicalType": "nvarchar"
-								}
-							},
-							{
-								"source": {
-									"name": "Age",
-									"type": "Int32",
-									"physicalType": "int"
-								},
-								"sink": {
-									"name": "PasswordHash",
-									"type": "String",
-									"physicalType": "varchar"
-								}
-							},
-							{
-								"source": {
-									"name": "Age",
-									"type": "Int32",
-									"physicalType": "int"
-								},
-								"sink": {
-									"name": "PasswordSalt",
-									"type": "String",
-									"physicalType": "varchar"
-								}
-							},
-							{
-								"source": {
-									"name": "FirstName",
-									"type": "String",
-									"physicalType": "nvarchar"
-								},
-								"sink": {
-									"name": "EmailAddress",
 									"type": "String",
 									"physicalType": "nvarchar"
 								}
