@@ -64,6 +64,18 @@
 									"type": "String",
 									"physicalType": "nvarchar"
 								}
+							},
+							{
+								"source": {
+									"name": "Age",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "PasswordHash",
+									"type": "String",
+									"physicalType": "varchar"
+								}
 							}
 						],
 						"typeConversion": true,
