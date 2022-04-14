@@ -1,0 +1,23 @@
+{
+	"name": "Json1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": {
+					"value": "@(pipeline().TriggerId).json",
+					"type": "Expression"
+				},
+				"folderPath": "output",
+				"container": "blobcontainer1"
+			}
+		},
+		"schema": {}
+	}
+}
