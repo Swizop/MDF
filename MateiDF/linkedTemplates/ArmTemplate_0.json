@@ -64,6 +64,29 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/AllCSVInput')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "*.csv",
+						"container": "blobcontainer1"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/AzureSqlPeople')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -140,6 +163,42 @@
 						"type": "String"
 					}
 				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/OutputBinary1')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"FileName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": {
+							"value": "@dataset().FileName",
+							"type": "Expression"
+						},
+						"folderPath": "output",
+						"container": "blobcontainer1"
+					},
+					"compression": {
+						"type": "ZipDeflate",
+						"level": "Fastest"
+					}
+				}
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
@@ -234,7 +293,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/AllCSVInput')]",
+			"name": "[concat(parameters('factoryName'), '/Json1')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -243,50 +302,19 @@
 					"type": "LinkedServiceReference"
 				},
 				"annotations": [],
-				"type": "Binary",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobStorageLocation",
-						"fileName": "*.csv",
-						"container": "blobcontainer1"
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/OutputBinary1')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "AzureBlobStorage1",
-					"type": "LinkedServiceReference"
-				},
-				"parameters": {
-					"FileName": {
-						"type": "string"
-					}
-				},
-				"annotations": [],
-				"type": "Binary",
+				"type": "Json",
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobStorageLocation",
 						"fileName": {
-							"value": "@dataset().FileName",
+							"value": "@(pipeline().TriggerId).json",
 							"type": "Expression"
 						},
 						"folderPath": "output",
 						"container": "blobcontainer1"
-					},
-					"compression": {
-						"type": "ZipDeflate",
-						"level": "Fastest"
 					}
-				}
+				},
+				"schema": {}
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
@@ -481,6 +509,136 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/ParametersLab')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Get Metadata1",
+						"type": "GetMetadata",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "People1",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"fieldList": [
+								"itemName",
+								"lastModified",
+								"size"
+							],
+							"storeSettings": {
+								"type": "AzureBlobStorageReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							},
+							"formatSettings": {
+								"type": "DelimitedTextReadSettings"
+							}
+						}
+					},
+					{
+						"name": "Set variable1",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "Get Metadata1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "test",
+							"value": {
+								"value": "@activity('Get Metadata1').output.lastModified",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Copy data1",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "BinarySource",
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"wildcardFileName": "*.csv",
+									"deleteFilesAfterCompletion": false
+								},
+								"formatSettings": {
+									"type": "BinaryReadSettings"
+								}
+							},
+							"sink": {
+								"type": "BinarySink",
+								"storeSettings": {
+									"type": "AzureBlobStorageWriteSettings"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "AllCSVInput",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "OutputBinary1",
+								"type": "DatasetReference",
+								"parameters": {
+									"FileName": {
+										"value": "@(pipeline().TriggerTime).zip",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"variables": {
+					"test": {
+						"type": "String"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/People1')]",
+				"[concat(variables('factoryId'), '/datasets/AllCSVInput')]",
+				"[concat(variables('factoryId'), '/datasets/OutputBinary1')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/TriggerWebCopy')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -636,63 +794,11 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/ParametersLab')]",
+			"name": "[concat(parameters('factoryName'), '/DataMovementLab')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"activities": [
-					{
-						"name": "Get Metadata1",
-						"type": "GetMetadata",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataset": {
-								"referenceName": "People1",
-								"type": "DatasetReference",
-								"parameters": {}
-							},
-							"fieldList": [
-								"itemName",
-								"lastModified",
-								"size"
-							],
-							"storeSettings": {
-								"type": "AzureBlobStorageReadSettings",
-								"enablePartitionDiscovery": false
-							},
-							"formatSettings": {
-								"type": "DelimitedTextReadSettings"
-							}
-						}
-					},
-					{
-						"name": "Set variable1",
-						"type": "SetVariable",
-						"dependsOn": [
-							{
-								"activity": "Get Metadata1",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "test",
-							"value": {
-								"value": "@activity('Get Metadata1').output.lastModified",
-								"type": "Expression"
-							}
-						}
-					},
 					{
 						"name": "Copy data1",
 						"type": "Copy",
@@ -707,40 +813,33 @@
 						"userProperties": [],
 						"typeProperties": {
 							"source": {
-								"type": "BinarySource",
-								"storeSettings": {
-									"type": "AzureBlobStorageReadSettings",
-									"recursive": true
-								},
-								"formatSettings": {
-									"type": "BinaryReadSettings"
-								}
+								"type": "AzureSqlSource",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
 							},
 							"sink": {
-								"type": "BinarySink",
+								"type": "JsonSink",
 								"storeSettings": {
 									"type": "AzureBlobStorageWriteSettings"
+								},
+								"formatSettings": {
+									"type": "JsonWriteSettings"
 								}
 							},
 							"enableStaging": false
 						},
 						"inputs": [
 							{
-								"referenceName": "AllCSVInput",
+								"referenceName": "AzureSqlPeople",
 								"type": "DatasetReference",
 								"parameters": {}
 							}
 						],
 						"outputs": [
 							{
-								"referenceName": "OutputBinary1",
+								"referenceName": "Json1",
 								"type": "DatasetReference",
-								"parameters": {
-									"FileName": {
-										"value": "@(pipeline().TriggerTime).zip",
-										"type": "Expression"
-									}
-								}
+								"parameters": {}
 							}
 						]
 					}
@@ -749,17 +848,11 @@
 					"elapsedTimeMetric": {},
 					"cancelAfter": {}
 				},
-				"variables": {
-					"test": {
-						"type": "String"
-					}
-				},
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/People1')]",
-				"[concat(variables('factoryId'), '/datasets/AllCSVInput')]",
-				"[concat(variables('factoryId'), '/datasets/OutputBinary1')]"
+				"[concat(variables('factoryId'), '/datasets/AzureSqlPeople')]",
+				"[concat(variables('factoryId'), '/datasets/Json1')]"
 			]
 		}
 	]
