@@ -3,11 +3,21 @@
 	"properties": {
 		"annotations": [],
 		"runtimeState": "Started",
+		"pipeline": {
+			"pipelineReference": {
+				"referenceName": "TriggersLab",
+				"type": "PipelineReference"
+			},
+			"parameters": {
+				"param1": "@trigger().outputs.windowStartTime"
+			}
+		},
 		"type": "TumblingWindowTrigger",
 		"typeProperties": {
 			"frequency": "Minute",
 			"interval": 5,
 			"startTime": "2022-04-21T10:19:00Z",
+			"endTime": "2022-04-21T10:25:08Z",
 			"delay": "00:00:00",
 			"maxConcurrency": 50,
 			"retryPolicy": {
