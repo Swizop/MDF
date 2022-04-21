@@ -3,15 +3,6 @@
 	"properties": {
 		"annotations": [],
 		"runtimeState": "Started",
-		"pipeline": {
-			"pipelineReference": {
-				"referenceName": "TriggersLab",
-				"type": "PipelineReference"
-			},
-			"parameters": {
-				"param1": "@trigger().outputs.windowStartTime"
-			}
-		},
 		"type": "TumblingWindowTrigger",
 		"typeProperties": {
 			"frequency": "Minute",
