@@ -1,0 +1,60 @@
+{
+	"name": "DelimitedText1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "TradingAppList.csv",
+				"container": "blobcontainer1"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "ID",
+				"type": "String"
+			},
+			{
+				"name": "ItemTitle",
+				"type": "String"
+			},
+			{
+				"name": "ItemDescription",
+				"type": "String"
+			},
+			{
+				"name": "ItemPrice",
+				"type": "String"
+			},
+			{
+				"name": "ItemCategory",
+				"type": "String"
+			},
+			{
+				"name": "ItemImage",
+				"type": "String"
+			},
+			{
+				"name": "ItemLocation",
+				"type": "String"
+			},
+			{
+				"name": "WillingToTrade",
+				"type": "String"
+			},
+			{
+				"name": "ItemOwner",
+				"type": "String"
+			}
+		]
+	}
+}
