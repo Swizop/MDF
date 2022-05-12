@@ -15,6 +15,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'AzureSqlDatabase1'"
 		},
+		"MySql1_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'MySql1'"
+		},
 		"AzureKeyVault1_properties_typeProperties_baseUrl": {
 			"type": "string",
 			"defaultValue": "https://MateiKeys.vault.azure.net/"
@@ -102,6 +106,16 @@
 				"typeProperties": {
 					"connectionString": "[parameters('AzureSqlDatabase1_connectionString')]"
 				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SelfHostedIRDragons')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "SelfHosted",
+				"typeProperties": {}
 			},
 			"dependsOn": []
 		},
@@ -251,6 +265,82 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/BinarySinkFileStore')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Connection to your destination data store.",
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"container": {
+						"type": "string"
+					},
+					"directory": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"folderPath": {
+							"value": "@dataset().directory",
+							"type": "Expression"
+						},
+						"container": {
+							"value": "@dataset().container",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/BinarySourceFileStore')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Connection to your source data store.",
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"container": {
+						"type": "string"
+					},
+					"directory": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"folderPath": {
+							"value": "@dataset().directory",
+							"type": "Expression"
+						},
+						"container": {
+							"value": "@dataset().container",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
 			]
 		},
 		{
@@ -482,76 +572,84 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/BinarySourceFileStore')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
+			"name": "[concat(parameters('factoryName'), '/MySql1')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
 			"properties": {
-				"description": "Connection to your source data store.",
-				"linkedServiceName": {
-					"referenceName": "AzureBlobStorage1",
-					"type": "LinkedServiceReference"
-				},
-				"parameters": {
-					"container": {
-						"type": "string"
-					},
-					"directory": {
-						"type": "string"
-					}
-				},
 				"annotations": [],
-				"type": "Binary",
+				"type": "MySql",
 				"typeProperties": {
-					"location": {
-						"type": "AzureBlobStorageLocation",
-						"folderPath": {
-							"value": "@dataset().directory",
-							"type": "Expression"
-						},
-						"container": {
-							"value": "@dataset().container",
-							"type": "Expression"
-						}
-					}
+					"connectionString": "[parameters('MySql1_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "SelfHostedIRDragons",
+					"type": "IntegrationRuntimeReference"
 				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
+				"[concat(variables('factoryId'), '/integrationRuntimes/SelfHostedIRDragons')]"
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/BinarySinkFileStore')]",
+			"name": "[concat(parameters('factoryName'), '/DelimitedText1')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
-				"description": "Connection to your destination data store.",
 				"linkedServiceName": {
 					"referenceName": "AzureBlobStorage1",
 					"type": "LinkedServiceReference"
 				},
-				"parameters": {
-					"container": {
-						"type": "string"
-					},
-					"directory": {
-						"type": "string"
-					}
-				},
 				"annotations": [],
-				"type": "Binary",
+				"type": "DelimitedText",
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobStorageLocation",
-						"folderPath": {
-							"value": "@dataset().directory",
-							"type": "Expression"
-						},
-						"container": {
-							"value": "@dataset().container",
-							"type": "Expression"
-						}
+						"fileName": "TradingAppList.csv",
+						"container": "blobcontainer1"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "ID",
+						"type": "String"
+					},
+					{
+						"name": "ItemTitle",
+						"type": "String"
+					},
+					{
+						"name": "ItemDescription",
+						"type": "String"
+					},
+					{
+						"name": "ItemPrice",
+						"type": "String"
+					},
+					{
+						"name": "ItemCategory",
+						"type": "String"
+					},
+					{
+						"name": "ItemImage",
+						"type": "String"
+					},
+					{
+						"name": "ItemLocation",
+						"type": "String"
+					},
+					{
+						"name": "WillingToTrade",
+						"type": "String"
+					},
+					{
+						"name": "ItemOwner",
+						"type": "String"
 					}
-				}
+				]
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
@@ -743,395 +841,6 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/People1')]",
 				"[concat(variables('factoryId'), '/datasets/AzureSqlPeople')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/DataMovementLab')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "Copy data1",
-						"type": "Copy",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "AzureSqlSource",
-								"queryTimeout": "02:00:00",
-								"partitionOption": "None"
-							},
-							"sink": {
-								"type": "AzureSqlSink",
-								"writeBehavior": "insert",
-								"sqlWriterUseTableLock": false
-							},
-							"enableStaging": false,
-							"translator": {
-								"type": "TabularTranslator",
-								"mappings": [
-									{
-										"source": {
-											"name": "PersonId",
-											"type": "Int32",
-											"physicalType": "int"
-										},
-										"sink": {
-											"name": "ManagerId",
-											"type": "Int32",
-											"physicalType": "int"
-										}
-									},
-									{
-										"source": {
-											"name": "FirstName",
-											"type": "String",
-											"physicalType": "nvarchar"
-										},
-										"sink": {
-											"name": "FirstName",
-											"type": "String",
-											"physicalType": "nvarchar"
-										}
-									},
-									{
-										"source": {
-											"name": "LastName",
-											"type": "String",
-											"physicalType": "nvarchar"
-										},
-										"sink": {
-											"name": "LastName",
-											"type": "String",
-											"physicalType": "nvarchar"
-										}
-									}
-								],
-								"typeConversion": true,
-								"typeConversionSettings": {
-									"allowDataTruncation": true,
-									"treatBooleanAsNumber": false
-								}
-							}
-						},
-						"inputs": [
-							{
-								"referenceName": "AzureSqlPeople",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "AzureSqlOutput1",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						]
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {},
-					"cancelAfter": {}
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/AzureSqlPeople')]",
-				"[concat(variables('factoryId'), '/datasets/AzureSqlOutput1')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ParametersLab')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "Get Metadata1",
-						"type": "GetMetadata",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataset": {
-								"referenceName": "People1",
-								"type": "DatasetReference",
-								"parameters": {}
-							},
-							"fieldList": [
-								"itemName",
-								"lastModified",
-								"size"
-							],
-							"storeSettings": {
-								"type": "AzureBlobStorageReadSettings",
-								"recursive": true,
-								"enablePartitionDiscovery": false
-							},
-							"formatSettings": {
-								"type": "DelimitedTextReadSettings"
-							}
-						}
-					},
-					{
-						"name": "Set variable1",
-						"type": "SetVariable",
-						"dependsOn": [
-							{
-								"activity": "Get Metadata1",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "test",
-							"value": {
-								"value": "@activity('Get Metadata1').output.lastModified",
-								"type": "Expression"
-							}
-						}
-					},
-					{
-						"name": "Copy data1",
-						"type": "Copy",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "BinarySource",
-								"storeSettings": {
-									"type": "AzureBlobStorageReadSettings",
-									"recursive": true,
-									"wildcardFileName": "*.csv",
-									"deleteFilesAfterCompletion": false
-								},
-								"formatSettings": {
-									"type": "BinaryReadSettings"
-								}
-							},
-							"sink": {
-								"type": "BinarySink",
-								"storeSettings": {
-									"type": "AzureBlobStorageWriteSettings"
-								}
-							},
-							"enableStaging": false
-						},
-						"inputs": [
-							{
-								"referenceName": "AllCSVInput",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "OutputBinary1",
-								"type": "DatasetReference",
-								"parameters": {
-									"FileName": {
-										"value": "@(pipeline().TriggerTime).zip",
-										"type": "Expression"
-									}
-								}
-							}
-						]
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {},
-					"cancelAfter": {}
-				},
-				"variables": {
-					"test": {
-						"type": "String"
-					}
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/People1')]",
-				"[concat(variables('factoryId'), '/datasets/AllCSVInput')]",
-				"[concat(variables('factoryId'), '/datasets/OutputBinary1')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/TriggerWebCopy')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "Copy1",
-						"type": "Copy",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 2,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "DelimitedTextSource",
-								"storeSettings": {
-									"type": "AzureBlobStorageReadSettings",
-									"recursive": true,
-									"enablePartitionDiscovery": false
-								},
-								"formatSettings": {
-									"type": "DelimitedTextReadSettings"
-								}
-							},
-							"sink": {
-								"type": "DelimitedTextSink",
-								"storeSettings": {
-									"type": "AzureBlobStorageWriteSettings"
-								},
-								"formatSettings": {
-									"type": "DelimitedTextWriteSettings",
-									"quoteAllText": true,
-									"fileExtension": ".txt"
-								}
-							},
-							"enableStaging": false,
-							"translator": {
-								"type": "TabularTranslator",
-								"typeConversion": true,
-								"typeConversionSettings": {
-									"allowDataTruncation": true,
-									"treatBooleanAsNumber": false
-								}
-							}
-						},
-						"inputs": [
-							{
-								"referenceName": "People1",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "SinkWithParams",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						]
-					},
-					{
-						"name": "SendSuccessEmail",
-						"type": "WebActivity",
-						"dependsOn": [
-							{
-								"activity": "Copy1",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"url": "https://prod-58.eastus.logic.azure.com:443/workflows/f7319feb210c48f180521ede757a3421/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=EswzZInwOw1xiJ2C9StnehkkyRJQ3K_Dp4Gn9OjADe4",
-							"method": "POST",
-							"headers": {
-								"Content-Type": "application/json"
-							},
-							"body": {
-								"message": "@{activity('Copy1').output.dataWritten}",
-								"dataFactoryName": "@{pipeline().DataFactory}",
-								"pipelineName": "@{pipeline().Pipeline}",
-								"receiver": "@pipeline().parameters.receiver"
-							}
-						}
-					},
-					{
-						"name": "SendFailEmail",
-						"type": "WebActivity",
-						"dependsOn": [
-							{
-								"activity": "Copy1",
-								"dependencyConditions": [
-									"Failed"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"url": "https://prod-10.centralus.logic.azure.com:443/workflows/d6b5281763b74ccba0ea7dba26001785/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=ucPpu7JfglHNeqI7gDPbd5eA-QfQm30n_RI-otnmVsM",
-							"method": "POST",
-							"headers": {
-								"Content-Type": "application/json"
-							},
-							"body": {
-								"message": "@{activity('Copy1').error.message}",
-								"dataFactoryName": "@{pipeline().DataFactory}",
-								"pipelineName": "@{pipeline().Pipeline}",
-								"receiver": "@pipeline().parameters.receiver"
-							}
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {},
-					"cancelAfter": {}
-				},
-				"parameters": {
-					"sourceContainer": {
-						"type": "string"
-					},
-					"sinkContainer": {
-						"type": "string"
-					},
-					"receiver": {
-						"type": "string"
-					}
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/People1')]",
-				"[concat(variables('factoryId'), '/datasets/SinkWithParams')]"
 			]
 		}
 	]
